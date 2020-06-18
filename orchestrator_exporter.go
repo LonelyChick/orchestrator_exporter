@@ -18,7 +18,22 @@ import (
 type StatusResponse struct {
 	Code    string
 	Message string
-	Details []string
+	Details DetailsInfo
+}
+
+type DetailsInfo struct {
+	Healthy bool
+	Hostname string
+	Token string
+	IsActiveNode bool
+	ActiveNode interface{}
+	Err string
+	AvailableNodes interface{}
+	RaftLeader string
+	IsRaftLeader bool
+	RaftLeaderURI string
+	RaftAdvertise string
+	RaftHealthyMembers []string
 }
 
 type orchesExporterOpts struct {
@@ -84,11 +99,13 @@ func main() {
 			os.Exit(2)
 		}
 
-		if status.Code == "ok" {
-			orchesStat.WithLabelValues("orchesStatus").Set(1)
-			logger.Println(status.Message)
+		if status.Code == "OK" {
+			if status.Details.Healthy {
+				orchesStat.WithLabelValues("orchesStatus").Set(1)
+			}else {
+				orchesStat.WithLabelValues("orchesStatus").Set(0)
+			}
 		}else {
-			orchesStat.WithLabelValues("orchesStatus").Set(0)
 			logger.Println(status.Message)
 		}
 
