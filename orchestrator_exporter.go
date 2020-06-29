@@ -89,11 +89,10 @@ func main() {
 			fmt.Println(err.Error())
 		}
 
-		defer resp.Body.Close()
-
 		body, err := ioutil.ReadAll(resp.Body)
 		var status StatusResponse
 		err = json.Unmarshal(body, &status)
+		resp.Body.Close()
 		if err != nil {
 			logger.Println("jsonUnmarshal Error:", err.Error())
 			os.Exit(2)
@@ -101,8 +100,11 @@ func main() {
 
 		if status.Code == "OK" {
 			if status.Details.Healthy {
+				logger.Println("Orchestrator cluster status: OK")
+				logger.Println(status.Message)
 				orchesStat.WithLabelValues("orchesStatus").Set(1)
 			}else {
+				logger.Println("Orchestrator cluster status: Faild")
 				orchesStat.WithLabelValues("orchesStatus").Set(0)
 			}
 		}else {
